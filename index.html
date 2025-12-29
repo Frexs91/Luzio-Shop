@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Luzio | Shop Officiel</title>
+    <style>
+        /* BASE & THEME */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Helvetica Neue', sans-serif; scroll-behavior: smooth; }
+        body { background-color: #f8f8f8; padding-top: 130px; overflow-x: hidden; position: relative; }
+
+        /* --- INTERFACE DE NAVIGATION --- */
+        .header-container { position: fixed; top: 0; left: 0; width: 100%; z-index: 2000; }
+        .border-line { width: 100%; height: 5px; background: repeating-linear-gradient(90deg, #000, #000 20px, #fff 20px, #fff 40px); }
+        nav { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(15px); padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #000; }
+        .brand-name { font-size: 2rem; font-weight: 900; text-transform: uppercase; letter-spacing: 8px; color: #000; text-decoration: none; }
+        .right-nav { display: flex; align-items: center; gap: 40px; }
+        .menu-links a { text-decoration: none; color: #000; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin-left: 20px; }
+
+        /* PANIER ICONE */
+        .cart-icon { position: relative; cursor: pointer; display: flex; align-items: center; }
+        .cart-icon svg { width: 24px; height: 24px; fill: none; stroke: #000; stroke-width: 2; }
+        .cart-count { position: absolute; top: -8px; right: -10px; background: #ff3e3e; color: white; font-size: 10px; width: 18px; height: 18px; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 2px solid #fff; transition: 0.3s; }
+
+        /* --- PANIER LATÉRAL --- */
+        #cart-sidebar { position: fixed; top: 0; right: -400px; width: 350px; height: 100%; background: white; z-index: 3000; box-shadow: -10px 0 30px rgba(0,0,0,0.1); transition: 0.4s ease; padding: 30px; display: flex; flex-direction: column; }
+        #cart-sidebar.open { right: 0; }
+        .cart-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 20px; }
+        .close-cart { cursor: pointer; font-size: 1.5rem; font-weight: bold; }
+        #cart-items-list { flex-grow: 1; overflow-y: auto; list-style: none; }
+        .cart-item { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 0.9rem; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        
+        /* BOUTONS PANIER */
+        .cart-buttons { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+        .checkout-btn { background: #000; color: #fff; text-align: center; padding: 15px; text-decoration: none; text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem; border: none; cursor: pointer; }
+        .clear-btn { background: #eee; color: #333; text-align: center; padding: 10px; text-decoration: none; text-transform: uppercase; letter-spacing: 1px; font-size: 0.7rem; border: none; cursor: pointer; }
+
+        /* --- MODALE DE PAIEMENT --- */
+        #payment-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 4000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .payment-card { background: white; width: 400px; padding: 40px; border-radius: 5px; position: relative; }
+        .payment-card h2 { font-size: 1.2rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; text-align: center; }
+        .payment-form input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; font-size: 0.9rem; outline: none; }
+        .pay-now-btn { width: 100%; background: #000; color: white; padding: 15px; border: none; text-transform: uppercase; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .close-payment { position: absolute; top: 15px; right: 20px; cursor: pointer; font-size: 1.2rem; }
+
+        /* --- COLLECTIONS BAR --- */
+        .collections-bar { background: #000; padding: 8px 5%; display: flex; justify-content: center; gap: 40px; }
+        .collections-bar a { color: #fff; text-decoration: none; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 3px; }
+
+        /* --- CATALOGUE --- */
+        .catalog { max-width: 1100px; margin: 0 auto; padding-bottom: 100px; }
+        .color-section { margin-bottom: 100px; scroll-margin-top: 160px; }
+        .color-title { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 4px; margin-bottom: 30px; border-left: 5px solid #000; padding-left: 15px; }
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; }
+
+        .product-card { background: white; padding: 25px; text-align: center; transition: 0.4s; border: 1px solid #eee; }
+        .product-card:hover { transform: translateY(-10px); border-color: #000; }
+        .product-card a { text-decoration: none; color: inherit; display: block; }
+        .product-card img { width: 100%; height: 220px; object-fit: contain; margin-bottom: 20px; }
+        .product-card h3 { font-size: 0.8rem; text-transform: uppercase; margin-bottom: 15px; }
+
+        .add-to-cart-btn { background: #000; color: #fff; border: none; padding: 10px 15px; font-size: 0.7rem; text-transform: uppercase; cursor: pointer; width: 100%; }
+    </style>
+</head>
+<body>
+
+    <div id="payment-modal">
+        <div class="payment-card">
+            <span class="close-payment" onclick="closePayment()">×</span>
+            <h2>Paiement Sécurisé</h2>
+            <form class="payment-form" onsubmit="processPayment(event)">
+                <input type="text" placeholder="Nom sur la carte" required>
+                <input type="text" placeholder="Numéro de carte (16 chiffres)" maxlength="16" required>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" placeholder="MM/AA" maxlength="5" required>
+                    <input type="text" placeholder="CVC" maxlength="3" required>
+                </div>
+                <p id="final-price" style="text-align: center; font-weight: bold; margin-bottom: 15px;">Total à régler : 0€</p>
+                <button type="submit" class="pay-now-btn" id="pay-btn-text">Confirmer le paiement</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="cart-sidebar">
+        <div class="cart-header">
+            <h3>MON PANIER</h3>
+            <span class="close-cart" onclick="toggleCart()">×</span>
+        </div>
+        <ul id="cart-items-list"></ul>
+        <div id="cart-total" style="font-weight: bold; margin-top: 10px; text-align: right; border-top: 1px solid #000; padding-top: 10px;">Total: 0€</div>
+        <div class="cart-buttons">
+            <button class="checkout-btn" onclick="openPayment()">Payer la commande</button>
+            <button class="clear-btn" onclick="clearCart()">Vider le panier</button>
+        </div>
+    </div>
+
+    <div class="header-container">
+        <div class="border-line"></div>
+        <nav>
+            <a href="#" class="brand-name">Luzio</a>
+            <div class="right-nav">
+                <div class="menu-links"><a href="#shop">E-Shop</a><a href="#">Lookbook</a></div>
+                <div class="cart-icon" onclick="toggleCart()">
+                    <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4H6zM3 6h18M16 10a4 4 0 01-8 0" /></svg>
+                    <span class="cart-count" id="count-badge">0</span>
+                </div>
+            </div>
+        </nav>
+        <div class="collections-bar">
+            <a href="#black">Anthracite</a><a href="#blue">Deep Blue</a><a href="#green">Forest Green</a><a href="#pink">Pale Pink</a><a href="#white">Optic White</a>
+        </div>
+    </div>
+
+    <main class="catalog" id="shop">
+
+        <div class="color-section" id="black">
+            <h2 class="color-title">01. Anthracite Black</h2>
+            <div class="grid">
+                <div class="product-card">
+                    <a href="description-hoodie-noir.html">
+                        <img src="Hoodie_Black.png" alt="Hoodie">
+                        <h3>Hoodie Black - 75€</h3>
+                    </a>
+                    <button class="add-to-cart-btn" onclick="addToCart('Hoodie Black', 75)">Ajouter au panier</button>
+                </div>
+                <div class="product-card">
+                    <a href="description-survet-noir.html">
+                        <img src="Survet_Black.png" alt="Survet">
+                        <h3>Survêtement Black - 60€</h3>
+                    </a>
+                    <button class="add-to-cart-btn" onclick="addToCart('Survet Black', 60)">Ajouter au panier</button>
+                </div>
+                <div class="product-card">
+                    <a href="description-Tshirt-noir.html">
+                        <img src="Tshirt_Black.png" alt="Tshirt">
+                        <h3>T-Shirt Black - 35€</h3>
+                    </a>
+                    <button class="add-to-cart-btn" onclick="addToCart('T-Shirt Black', 35)">Ajouter au panier</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="color-section" id="blue">
+            <h2 class="color-title">02. Deep Blue</h2>
+            <div class="grid">
+                <div class="product-card">
+                    <a href="description-hoodie-blue.html">
+                        <img src="Hoodie_Blue.png" alt="Hoodie">
+                        <h3>Hoodie Blue - 75€</h3>
+                    </a>
+                    <button class="add-to-cart-btn" onclick="addToCart('Hoodie Blue', 75)">Ajouter au panier</button>
+                </div>
+                <div class="product-card">
+                    <a href="description-survet-blue.html">
+                        <img src="Survet_Blue.png" alt="Survet">
+                        <h3>Survêtement Blue - 60€</h3>
+                    </a>
+                    <button class="add-to-cart-btn" onclick="addToCart('Survet Blue', 60)">Ajouter au panier</button>
+                </div>
+                <div class="product-card">
+                    <a href="description-tshirt-blue.html">
+                        <img src="Tshirt_Blue.png" alt="Tshirt">
+                        <h3>T-Shirt Blue - 35€</h3>
+                    </a>
+                    <button class="add-to-cart-btn" onclick="addToCart('T-Shirt Blue', 35)">Ajouter au panier</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="color-section" id="green">
+            <h2 class="color-title">03. Forest Green</h2>
+            <div class="grid">
+                <div class="product-card">
+                    <a href="description-hoodie-green.html">
+                        <img src="Hoodie_Green.png" alt="Hoodie">
+                        <h3>Hoodie Green - 75€</h3>
+                    </a>
+                    <button class="add-to-cart-btn" onclick="addToCart('Hoodie Green', 75)">Ajouter au panier</button>
+                </div>
+                <div class="product-card">
+                    <a href="description-survet-green.html">
+                        <img src="Survet_Green.png" alt="Survet">
+                        <h3>Survêtement Green - 60€</h3>
+                    </a>
+                    <button class="add-to-cart-btn" onclick="addToCart('Survet Green', 60)">Ajouter au panier</button>
+                </div>
+                <div class="product-card">
+                    <a href="description-tshirt-green.html">
+                        <img src="Tshirt_Green.png" alt="Tshirt">
+                        <h3>T-Shirt Green - 35€</h3>
+                    </a>
+                    <button class="add-to-cart-btn" onclick="addToCart('T-Shirt Green', 35)">Ajouter au panier</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="color-section" id="pink">
+            <h2 class="color-title">04. Pale Pink</h2>
+            <div class="grid">
+                <div class="product-card">
+                    <a href="description-hoodie-pink.html">
+                        <img src="Hoodie_Pink.png" alt="Hoodie">
+                        <h3>Hoodie Pink - 75€</h3>
+                    </a>
+                    <button class="add-to-cart-btn" onclick="addToCart('Hoodie Pink', 75)">Ajouter au panier</button>
+                </div>
+                <div class="product-card">
+                    <a href="description-survet-pink.html">
+                        <img src="Survet_Pink.png" alt="Survet">
+                        <h3>Survêtement Pink - 60€</h3>
+                    </a>
+                    <button class="add-to-cart-btn" onclick="addToCart('Survet Pink', 60)">Ajouter au panier</button>
+                </div>
+                <div class="product-card">
+                    <a href="description-tshirt-pink.html">
+                        <img src="Tshirt_Pink.png" alt="Tshirt">
+                        <h3>T-Shirt Pink - 35€</h3>
+                    </a>
+                    <button class="add-to-cart-btn" onclick="addToCart('T-Shirt Pink', 35)">Ajouter au panier</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="color-section" id="white">
+            <h2 class="color-title">05. Optic White</h2>
+            <div class="grid">
+                <div class="product-card">
+                    <a href="description-hoodie-white.html">
+                        <img src="Hoodie_White.png" alt="Hoodie">
+                        <h3>Hoodie White - 75€</h3>
+                    </a>
+                    <button class="add-to-cart-btn" onclick="addToCart('Hoodie White', 75)">Ajouter au panier</button>
+                </div>
+                <div class="product-card">
+                    <a href="description-survet-white.html">
+                        <img src="Survet_White.png" alt="Survet">
+                        <h3>Survêtement White - 60€</h3>
+                    </a>
+                    <button class="add-to-cart-btn" onclick="addToCart('Survet White', 60)">Ajouter au panier</button>
+                </div>
+                <div class="product-card">
+                    <a href="description-tshirt-white.html">
+                        <img src="Tshirt_White.png" alt="Tshirt">
+                        <h3>T-Shirt White - 35€</h3>
+                    </a>
+                    <button class="add-to-cart-btn" onclick="addToCart('T-Shirt White', 35)">Ajouter au panier</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        let cart = [];
+        let total = 0;
+
+        function toggleCart() { document.getElementById('cart-sidebar').classList.toggle('open'); }
+
+        function addToCart(name, price) {
+            cart.push({name, price});
+            total += price;
+            updateCartUI();
+            const badge = document.getElementById('count-badge');
+            badge.style.transform = "scale(1.4)";
+            setTimeout(() => { badge.style.transform = "scale(1)"; }, 300);
+        }
+
+        function clearCart() { cart = []; total = 0; updateCartUI(); }
+
+        function updateCartUI() {
+            const list = document.getElementById('cart-items-list');
+            const badge = document.getElementById('count-badge');
+            const totalDisplay = document.getElementById('cart-total');
+            badge.innerText = cart.length;
+            list.innerHTML = cart.length === 0 ? "<p style='color: #888; text-align: center; margin-top: 20px;'>Panier vide.</p>" : "";
+            cart.forEach((item) => {
+                list.innerHTML += `<li class="cart-item"><span>${item.name}</span><span>${item.price}€</span></li>`;
+            });
+            totalDisplay.innerText = "Total: " + total + "€";
+            document.getElementById('final-price').innerText = "Total à régler : " + total + "€";
+        }
+
+        function openPayment() {
+            if(cart.length === 0) { alert("Votre panier est vide !"); return; }
+            document.getElementById('payment-modal').style.display = 'flex';
+        }
+
+        function closePayment() { document.getElementById('payment-modal').style.display = 'none'; }
+
+        function processPayment(event) {
+            event.preventDefault();
+            const btn = document.getElementById('pay-btn-text');
+            btn.innerText = "Traitement en cours...";
+            setTimeout(() => {
+                alert("Paiement accepté ! Merci de votre achat.");
+                clearCart();
+                closePayment();
+                toggleCart();
+                btn.innerText = "Confirmer le paiement";
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
