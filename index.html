@@ -6,13 +6,80 @@
     <style>
         /* BASE & THEME */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Helvetica Neue', sans-serif; scroll-behavior: smooth; }
-        body { background-color: #f8f8f8; padding-top: 130px; overflow-x: hidden; position: relative; }
+        
+        body { 
+            /* REMPLACE 'Background_Web.png' PAR LE NOM DE TON IMAGE */
+            background: url('Background_Web.png') no-repeat center center fixed; 
+            background-size: cover;
+            padding-top: 130px; 
+            overflow-x: hidden; 
+            position: relative; 
+            min-height: 100vh;
+        }
+
+        /* --- DECORATION VAGUES EN FOND --- */
+        .ocean { 
+            height: 100%; width: 100%; 
+            position: fixed; bottom: 0; left: 0; 
+            background: transparent; 
+            z-index: -1; 
+            opacity: 0.3; 
+        }
+
+        .wave {
+            background: url(https://s3-us-west-2.amazonaws.com/s.cdpn.io/85486/wave.svg) repeat-x; 
+            position: absolute; top: -198px; width: 6400px; height: 198px;
+            animation: wave 20s cubic-bezier( 0.36, 0.45, 0.63, 0.53) infinite;
+            transform: translate3d(0, 0, 0);
+        }
+
+        .wave:nth-of-type(2) {
+            top: -175px;
+            animation: wave 15s cubic-bezier( 0.36, 0.45, 0.63, 0.53) -.125s infinite, swell 10s ease -1.25s infinite;
+            opacity: 1;
+        }
+
+        @keyframes wave {
+            0% { margin-left: 0; }
+            100% { margin-left: -1600px; }
+        }
+
+        @keyframes swell {
+            0%, 100% { transform: translate3d(0,-25px,0); }
+            50% { transform: translate3d(0,5px,0); }
+        }
 
         /* --- INTERFACE DE NAVIGATION --- */
         .header-container { position: fixed; top: 0; left: 0; width: 100%; z-index: 2000; }
         .border-line { width: 100%; height: 5px; background: repeating-linear-gradient(90deg, #000, #000 20px, #fff 20px, #fff 40px); }
-        nav { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(15px); padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #000; }
+        
+        nav { 
+            background: rgba(255, 255, 255, 0.85); 
+            backdrop-filter: blur(15px); 
+            padding: 15px 5%; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 1px solid #000; 
+            position: relative; /* Pour le centrage absolu du titre */
+        }
+
         .brand-name { font-size: 2rem; font-weight: 900; text-transform: uppercase; letter-spacing: 8px; color: #000; text-decoration: none; }
+        
+        /* STYLE DU TITRE CENTRAL */
+        .center-title {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2.5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 15px;
+            color: #000;
+            pointer-events: none; /* Pour ne pas gêner les clics autour */
+            white-space: nowrap;
+        }
+
         .right-nav { display: flex; align-items: center; gap: 40px; }
         .menu-links a { text-decoration: none; color: #000; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin-left: 20px; }
 
@@ -29,7 +96,6 @@
         #cart-items-list { flex-grow: 1; overflow-y: auto; list-style: none; }
         .cart-item { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 0.9rem; border-bottom: 1px solid #eee; padding-bottom: 10px; }
         
-        /* BOUTONS PANIER */
         .cart-buttons { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
         .checkout-btn { background: #000; color: #fff; text-align: center; padding: 15px; text-decoration: none; text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem; border: none; cursor: pointer; }
         .clear-btn { background: #eee; color: #333; text-align: center; padding: 10px; text-decoration: none; text-transform: uppercase; letter-spacing: 1px; font-size: 0.7rem; border: none; cursor: pointer; }
@@ -43,17 +109,17 @@
         .close-payment { position: absolute; top: 15px; right: 20px; cursor: pointer; font-size: 1.2rem; }
 
         /* --- COLLECTIONS BAR --- */
-        .collections-bar { background: #000; padding: 8px 5%; display: flex; justify-content: center; gap: 40px; }
+        .collections-bar { position: relative; z-index: 2000; background: #000; padding: 8px 5%; display: flex; justify-content: center; gap: 40px; }
         .collections-bar a { color: #fff; text-decoration: none; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 3px; }
 
         /* --- CATALOGUE --- */
-        .catalog { max-width: 1100px; margin: 0 auto; padding-bottom: 100px; }
+        .catalog { position: relative; z-index: 10; max-width: 1100px; margin: 0 auto; padding-bottom: 100px; }
         .color-section { margin-bottom: 100px; scroll-margin-top: 160px; }
-        .color-title { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 4px; margin-bottom: 30px; border-left: 5px solid #000; padding-left: 15px; }
+        .color-title { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 4px; margin-bottom: 30px; border-left: 5px solid #000; padding-left: 15px; background: rgba(255,255,255,0.7); display: inline-block; padding-right: 20px; }
         .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; }
 
-        .product-card { background: white; padding: 25px; text-align: center; transition: 0.4s; border: 1px solid #eee; }
-        .product-card:hover { transform: translateY(-10px); border-color: #000; }
+        .product-card { background: rgba(255, 255, 255, 0.8); padding: 25px; text-align: center; transition: 0.4s; border: 1px solid rgba(255,255,255,0.3); backdrop-filter: blur(10px); }
+        .product-card:hover { transform: translateY(-10px); border-color: #000; background: white; }
         .product-card a { text-decoration: none; color: inherit; display: block; }
         .product-card img { width: 100%; height: 220px; object-fit: contain; margin-bottom: 20px; }
         .product-card h3 { font-size: 0.8rem; text-transform: uppercase; margin-bottom: 15px; }
@@ -62,6 +128,11 @@
     </style>
 </head>
 <body>
+
+    <div class="ocean">
+        <div class="wave"></div>
+        <div class="wave"></div>
+    </div>
 
     <div id="payment-modal">
         <div class="payment-card">
@@ -97,6 +168,9 @@
         <div class="border-line"></div>
         <nav>
             <a href="#" class="brand-name">Luzio</a>
+            
+            <div class="center-title">COLLECTION</div>
+
             <div class="right-nav">
                 <div class="menu-links"><a href="#shop">E-Shop</a><a href="#">Lookbook</a></div>
                 <div class="cart-icon" onclick="toggleCart()">
@@ -111,7 +185,6 @@
     </div>
 
     <main class="catalog" id="shop">
-
         <div class="color-section" id="black">
             <h2 class="color-title">01. Anthracite Black</h2>
             <div class="grid">
@@ -246,7 +319,6 @@
                 </div>
             </div>
         </div>
-
     </main>
 
     <script>
